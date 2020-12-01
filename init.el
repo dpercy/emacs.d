@@ -1,3 +1,4 @@
+(load-theme 'manoj-dark)
 (progn ; reduce filesystem clutter
   (setq make-backup-files nil)
   (setq auto-save-default nil)
@@ -40,10 +41,13 @@
   (scroll-bar-mode 0)
   (setq inhibit-startup-screen t)
   ;; TODO color theme
+
+  ;; TODO trim mode line more?
   )
 (progn ; ui behavior
   (defalias 'yes-or-no-p 'y-or-n-p)
   (save-place-mode 1)
+  (savehist-mode 1)
   (setq help-window-select t)
 
   ;; When displaying a buffer (as in compile, help, git), I generally
@@ -59,6 +63,8 @@
   (setq uniquify-buffer-name-style 'forward)
   (setq uniquify-strip-common-suffix nil)
 
+  (global-auto-revert-mode 1)
+
   ;; TODO better window navigation (windmove?)
   )
 (progn ; editing behavior
@@ -67,6 +73,7 @@
   ;; TODO less aggressive indentation? let me manually tab/untab?
   )
 ;; general
+(use-package diminish)
 (use-package helpful
   :bind (
 	 ;; The built-in describe-function also covers macros,
@@ -80,6 +87,7 @@
 	 ;; TODO C-h m ?
 	 ))
 (use-package hideshow-org
+  :diminish hs-minor-mode
   :hook ((emacs-lisp-mode . hs-hide-all)
 	 (emacs-lisp-mode . hs-org/minor-mode)))
 (use-package magit
@@ -88,16 +96,21 @@
   :hook (prog-mode . show-paren-mode)
   )
 (use-package git-gutter
-  :hook prog-mode)
+  :diminish
+  :config (global-git-gutter-mode))
 ; TODO git file navigation
 (use-package undo-tree
+  :diminish
   :init (global-undo-tree-mode))
+(use-package dumb-jump
+  :init (add-hook 'xref-backend-functions 'dumb-jump-xref-activate))
 ;; lisp
 (use-package paredit
   :hook (emacs-lisp-mode . paredit-mode))
+(diminish 'eldoc-mode)
 ;; TODO C++
 ;;    - indentation
-;;    - completion
+;;    - completion?
 ;;    - format on save
 ;;    - compile
 
