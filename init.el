@@ -1,4 +1,11 @@
-(load-theme 'manoj-dark)
+(progn ; gui appearance
+  (load-theme 'manoj-dark)
+  (menu-bar-mode 0)
+  (tool-bar-mode 0)
+  (scroll-bar-mode 0)
+  (setq inhibit-startup-screen t)
+  ;; TODO trim mode line more?
+  )
 (progn ; reduce filesystem clutter
   (setq make-backup-files nil)
   (setq auto-save-default nil)
@@ -20,36 +27,29 @@
 
   ;; always-ensure makes the first startup slow, and may make the first startup
   ;; fail if some package changed. But leaving always-ensure false also has
-  ;; problems: if
+  ;; problems: I don't want to overwrite global keybindings with ones that don't work.
   (setq use-package-always-ensure t)
-  ;; TODO consider use-package-always-defer
+  (setq use-package-always-defer t)
   (setq use-package-compute-statistics t)
-  ;; TODO try borg?
-  ;; - submodules (more declarative, easier to contribute)
-  ;; - simpler than straight.el?
-  ;; - annoying terminology :(
-  ;; - no dependency resolution...
   ;; TODO try straight.el?
   ;; - handles installation more declaratively?
   ;; - easier to edit / contribute to packages?
   ;; https://github.com/raxod502/straight.el
   (setq use-package-verbose t)
   )
-(progn ; gui appearance
-  (menu-bar-mode 0)
-  (tool-bar-mode 0)
-  (scroll-bar-mode 0)
-  (setq inhibit-startup-screen t)
-  ;; TODO color theme
-
-  ;; TODO trim mode line more?
-  )
 (progn ; ui behavior
-  (defalias 'yes-or-no-p 'y-or-n-p)
+
+  ;; persistence
   (save-place-mode 1)
   (savehist-mode 1)
-  (setq help-window-select t)
 
+  ;; minibuffer
+  (defalias 'yes-or-no-p 'y-or-n-p)
+  (setq enable-recursive-minibuffers t)
+  (minibuffer-depth-indicate-mode 1)
+
+  ;; window management
+  (setq help-window-select t)
   ;; When displaying a buffer (as in compile, help, git), I generally
   ;; want to use the 'same' window to avoid creating splits. The
   ;; exception is: if the buffer is already open in some window, I
@@ -57,6 +57,7 @@
   (setq display-buffer-base-action '((display-buffer-reuse-window
 				      display-buffer-same-window
 				      )))
+  (global-set-key (kbd "M-`") 'other-window)
 
   ;; Use paths to disambiguate buffer names.
   ;; (As opposed to the funky default angle-bracket notation.)
@@ -64,16 +65,20 @@
   (setq uniquify-strip-common-suffix nil)
 
   (global-auto-revert-mode 1)
-
-  ;; TODO better window navigation (windmove?)
   )
 (progn ; editing behavior
   (setq-default fill-column 80)
   (setq-default indent-tabs-mode nil)
   ;; TODO less aggressive indentation? let me manually tab/untab?
+  ;; https://dougie.io/emacs/indentation/#using-tabs-or-spaces-in-different-files
+  (setq backward-delete-char-untabify-method 'hungry)
+
+  (add-hook 'prog-mode-hook 'show-paren-mode)
+
+  (global-set-key (kbd "<f5>") 'recompile)
   )
 ;; general
-(use-package diminish)
+(use-package diminish) ; hide from modeline
 (use-package helpful
   :bind (
 	 ;; The built-in describe-function also covers macros,
@@ -88,13 +93,8 @@
 	 ))
 (use-package hideshow-org
   :diminish hs-minor-mode
-  :hook ((emacs-lisp-mode . hs-hide-all)
-	 (emacs-lisp-mode . hs-org/minor-mode)))
-(use-package magit
-  :defer t)
-(use-package paren
-  :hook (prog-mode . show-paren-mode)
-  )
+  :hook ((prog-mode . hs-org/minor-mode)))
+(use-package magit)
 (use-package git-gutter
   :diminish
   :config (global-git-gutter-mode))
