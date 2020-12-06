@@ -4,6 +4,8 @@
   (tool-bar-mode 0)
   (scroll-bar-mode 0)
   (setq inhibit-startup-screen t)
+
+  (add-hook 'package-menu-mode-hook 'hl-line-mode)
   ;; TODO trim mode line more?
   )
 (progn ; reduce filesystem clutter
@@ -69,13 +71,54 @@
 (progn ; editing behavior
   (setq-default fill-column 80)
   (setq-default indent-tabs-mode nil)
-  ;; TODO less aggressive indentation? let me manually tab/untab?
-  ;; https://dougie.io/emacs/indentation/#using-tabs-or-spaces-in-different-files
+  (global-subword-mode 1)
+
+  ;; TODO this is incompatible with hs-org/minor mode...
+  (defun manually-indent (beg end &optional n)
+    (interactive (if (use-region-p)
+                     (list (region-beginning) (region-end))
+                   (list (point) (point))))
+    (let ((beg (save-excursion
+                 (goto-char beg)
+                 (forward-line 0)
+                 (point)))
+          (end (save-excursion
+                 (goto-char end)
+                 (forward-line 1)
+                 (point))))
+      (save-excursion
+        (indent-rigidly beg end (* (or n 1) c-basic-offset)))
+      (setq deactivate-mark nil)))
+  (defun manually-dedent (beg end &optional n)
+    (interactive (if (use-region-p)
+                     (list (region-beginning) (region-end))
+                   (list (point) (point))))
+    (manually-indent beg end (- (or n 1))))
+  (define-minor-mode manually-indent-mode
+    "Try to be less aggressive about indentation: use tab/backtab."
+    :lighter ""
+    :group 'editing
+    :keymap '(keymap (backtab . manually-dedent) (tab . manually-indent)))
+  
   (setq backward-delete-char-untabify-method 'hungry)
 
   (add-hook 'prog-mode-hook 'show-paren-mode)
 
-  (global-set-key (kbd "<f5>") 'recompile)
+  (defun compile-project ()
+    (interactive)
+    (let ((root (car (project-roots (project-current)))))
+      (setq compilation-directory root)
+      ;; TODO detect whether compile-command is set?
+      ;; so it can prompt only the first time.
+      (recompile)))
+  (global-set-key (kbd "<f5>") 'compile-project)
+
+  ;; dwim
+  (global-set-key [remap upcase-word] 'upcase-dwim)
+  (global-set-key [remap downcase-word] 'downcase-dwim)
+  (global-set-key [remap capitalize-word] 'capitalize-dwim)
+
+  ;; TODO "back button" (as package?)
   )
 ;; general
 (use-package diminish) ; hide from modeline
@@ -83,13 +126,10 @@
   :bind (
 	 ;; The built-in describe-function also covers macros,
 	 ;; so it corresponds to helpful-callable.
-	 ;; TODO would be nice if these remappings were provided as
-	 ;; a global minor mode ("global-helpful-mode"?)
 	 ([remap describe-function] . helpful-callable)
 	 ([remap describe-key]      . helpful-key)
 	 ([remap describe-symbol]   . helpful-symbol)
 	 ([remap describe-variable] . helpful-variable)
-	 ;; TODO C-h m ?
 	 ))
 (use-package hideshow-org
   :diminish hs-minor-mode
@@ -98,7 +138,16 @@
 (use-package git-gutter
   :diminish
   :config (global-git-gutter-mode))
-; TODO git file navigation
+(use-package ivy
+  ;; ivy does fuzzy matching in the minibuffer, which is important
+  ;; for projectile-find-file.
+  ;; TODO try selectrum instead
+  :config (ivy-mode 1)
+  )
+(use-package projectile
+  ;; projectile seems to be faster than the built-in project.el.
+  :config (projectile-mode 1)
+  )
 (use-package undo-tree
   :diminish
   :init (global-undo-tree-mode))
