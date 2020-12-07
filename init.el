@@ -1,8 +1,8 @@
 (progn ; gui appearance
-  (load-theme 'manoj-dark)
   (menu-bar-mode 0)
   (tool-bar-mode 0)
   (scroll-bar-mode 0)
+  (fringe-mode 0)
   (setq inhibit-startup-screen t)
 
   (add-hook 'package-menu-mode-hook 'hl-line-mode)
@@ -121,6 +121,13 @@
   ;; TODO "back button" (as package?)
   )
 ;; general
+(use-package cyberpunk-theme :demand
+  :init
+  (progn
+    ;; 9.0pt corresponds to 12 pixels?
+    (set-face-attribute 'default nil :height 90)
+    (set-face-attribute 'font-lock-comment-face nil :slant 'normal)
+    ))
 (use-package diminish) ; hide from modeline
 (use-package helpful
   :bind (
@@ -135,19 +142,37 @@
   :diminish hs-minor-mode
   :hook ((prog-mode . hs-org/minor-mode)))
 (use-package magit)
-(use-package git-gutter
-  :diminish
-  :config (global-git-gutter-mode))
-(use-package ivy
-  ;; ivy does fuzzy matching in the minibuffer, which is important
-  ;; for projectile-find-file.
-  ;; TODO try selectrum instead
-  :config (ivy-mode 1)
-  )
+(use-package diff-hl
+  :init (progn
+          (global-diff-hl-mode 1)
+          (diff-hl-margin-mode 1)
+          (add-hook 'dired-mode-hook 'diff-hl-dired-mode)
+
+          (set-face-attribute 'diff-hl-insert nil :foreground "green" :background "darkgreen")
+          (set-face-attribute 'diff-hl-delete nil :foreground "red" :background "darkred")
+          (set-face-attribute 'diff-hl-change nil :foreground "yellow" :background "#444400")
+          
+          (set-face-attribute 'diff-refine-added nil
+                              :foreground "#88ff88" :background "#001100")
+          (set-face-attribute 'diff-refine-removed nil
+                              :foreground "#ff8888" :background "#330000")
+          ))
 (use-package projectile
   ;; projectile seems to be faster than the built-in project.el.
-  :config (projectile-mode 1)
-  )
+  ;; TODO remap find-file to something that uses projectile OR find-file...
+  :diminish
+  :init (progn
+            (projectile-mode 1)
+            ;; There seems to be an undeclared dependency on string-trim?
+            (require 'subr-x)))
+(use-package selectrum
+  ;; projectile needs some kind of fuzzy matching to work well;
+  ;; selectrum is one of the choices.
+  :init (selectrum-mode 1))
+(use-package selectrum-prescient
+  ;; selectrum-prescient seems to understand acronyms:
+  ;; I can type "ds sort" to get "document_source_sort.h".
+  :init (selectrum-prescient-mode 1))
 (use-package undo-tree
   :diminish
   :init (global-undo-tree-mode))
@@ -156,7 +181,17 @@
 ;; lisp
 (use-package paredit
   :hook (emacs-lisp-mode . paredit-mode))
-(diminish 'eldoc-mode)
+(progn ;; smaller modeline
+  ;; TODO what do I really want here?
+  ;; - dirty status
+  ;; - buffer name
+  ;; - line number / out of
+  ;; - mode??? or do I even care?
+  
+  (diminish 'eldoc-mode)
+  (diminish 'subword-mode)
+  (setq mode-line-format (remove '(vc-mode vc-mode) mode-line-format)))
+
 ;; TODO C++
 ;;    - indentation
 ;;    - completion?
