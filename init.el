@@ -122,6 +122,7 @@
 (use-package cyberpunk-theme :demand
   :init
   (progn
+    (load-theme 'cyberpunk)
     ;; 9.0pt corresponds to 12 pixels?
     (set-face-attribute 'default nil :height 90)
     (when (eq window-system 'mac)
