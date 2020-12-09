@@ -5,9 +5,7 @@
   (fringe-mode 0)
   (setq inhibit-startup-screen t)
 
-  (add-hook 'package-menu-mode-hook 'hl-line-mode)
-  ;; TODO trim mode line more?
-  )
+  (add-hook 'package-menu-mode-hook 'hl-line-mode))
 (progn ; reduce filesystem clutter
   (setq make-backup-files nil)
   (setq auto-save-default nil)
@@ -191,6 +189,8 @@
   (diminish 'eldoc-mode)
   (diminish 'subword-mode)
   (setq mode-line-format (remove '(vc-mode vc-mode) mode-line-format)))
+
+;; TODO something about nicer shortcuts? C-x C-c M-pinky C-pain
 
 ;; TODO C++
 ;;    - indentation
