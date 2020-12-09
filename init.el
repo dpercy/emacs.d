@@ -124,6 +124,9 @@
   (progn
     ;; 9.0pt corresponds to 12 pixels?
     (set-face-attribute 'default nil :height 90)
+    (when (eq window-system 'mac)
+      ;; Text appears smaller on my Mac; maybe the screen is denser.
+      (set-face-attribute 'default nil :height 120))
     (set-face-attribute 'font-lock-comment-face nil :slant 'normal)
     ))
 (use-package diminish) ; hide from modeline
