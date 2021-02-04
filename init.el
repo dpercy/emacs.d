@@ -1,8 +1,10 @@
 (progn ; gui appearance
-  (menu-bar-mode 0)
-  (tool-bar-mode 0)
-  (scroll-bar-mode 0)
-  (fringe-mode 0)
+  (dolist (f '(menu-bar-mode
+	       tool-bar-mode
+	       scroll-bar-mode
+	       fringe-mode))
+    (when (fboundp f)
+      (funcall f 0)))
   (setq inhibit-startup-screen t)
 
   (add-hook 'package-menu-mode-hook 'hl-line-mode))
